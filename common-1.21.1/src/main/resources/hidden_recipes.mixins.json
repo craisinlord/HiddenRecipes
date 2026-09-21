@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.craisinlord.hiddenrecipes.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "refmap": "hidden_recipes.mixins.refmap.json",
+  "mixins": [
+    "CraftingMenuMixin",
+    "AbstractFurnaceBlockMixin",
+    "AbstractFurnaceBlockEntityMixin"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

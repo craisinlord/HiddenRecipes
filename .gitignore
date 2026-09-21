@@ -1,0 +1,13 @@
+.forgejo/
+docs/
+.gradle
+/gradle-user-home
+
+# Project exclude paths
+/build/
+/common-1.21.1/build/
+/fabric-1.21.1/build/
+/fabric-1.21.1/build/classes/java/main/
+/fabric-1.21.1/build/classes/java/test/
+/neoforge-1.21.1/build/
+/neoforge-1.21.1/build/classes/java/main/

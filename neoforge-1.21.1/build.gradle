@@ -1,0 +1,109 @@
+plugins {
+    id 'net.neoforged.moddev' version '2.0.141'
+}
+
+group = rootProject.group
+version = rootProject.version
+
+base {
+    archivesName = "${mod_id}-neoforge-1.21.1"
+}
+
+neoForge {
+    version = neoforge_version_1_21_1
+    mods {
+        create(mod_id) {
+            sourceSet sourceSets.main
+        }
+    }
+    runs {
+        client { client() }
+        server { server() }
+    }
+}
+
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(21) }
+    withSourcesJar()
+}
+
+tasks.withType(ProcessResources).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    var replaceProperties = [
+        version        : project.version,
+        mod_id         : mod_id,
+        mod_name       : mod_name,
+        mod_description: mod_description,
+        mod_authors    : mod_authors,
+        mod_license    : mod_license
+    ]
+    inputs.properties replaceProperties
+
+    filesMatching('META-INF/neoforge.mods.toml') {
+        expand replaceProperties
+    }
+}
+
+tasks.withType(Copy).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.withType(Jar).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// Add common source sets directly
+sourceSets {
+    main {
+        java {
+            srcDirs project(':common-1.21.1').sourceSets.main.java.srcDirs
+            srcDir project(':common-1.21.1').file('src/jei/java')
+        }
+        resources {
+            srcDir project(':common-1.21.1').sourceSets.main.resources.srcDirs
+        }
+    }
+}
+
+dependencies {
+    compileOnly "mezz.jei:jei-1.21.1-common-api:${jei_version_1_21_1}"
+    compileOnly "mezz.jei:jei-1.21.1-neoforge-api:${jei_version_1_21_1}"
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = rootProject.group
+            artifactId = project.base.archivesName.get()
+            version = project.version
+
+            // NeoForge 1.21.x uses Mojang mappings natively; no deobfuscation step required by consumers.
+            artifact jar
+            artifact sourcesJar
+
+            pom {
+                name = "${mod_name} (NeoForge 1.21.1)"
+                description = mod_description
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = 'LocalMaven'
+            // file(...).toURI() (not manual "file://" string concat) so this resolves
+            // correctly on Windows too, where absolute paths contain backslashes.
+            url = findProperty('mavenRepoPath')
+                ? file(findProperty('mavenRepoPath')).toURI()
+                : rootProject.layout.buildDirectory.dir('maven-repo').get().asFile.toURI()
+        }
+        maven {
+            name = 'Forgejo'
+            url = uri('https://maven.tysontheember.dev')
+            credentials {
+                username = findProperty('forgejoActor') ?: System.getenv('FORGEJO_ACTOR')
+                password = findProperty('forgejoToken') ?: System.getenv('FORGEJO_TOKEN')
+            }
+        }
+    }
+}

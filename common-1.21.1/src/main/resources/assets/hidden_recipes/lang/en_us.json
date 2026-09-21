@@ -1,0 +1,13 @@
+{
+  "category.hidden_recipes.hint": "Hidden Recipe",
+  "category.hidden_recipes.hint.progress": "%s/%s requirements met",
+
+  "toast.hidden_recipes.unlocked.title": "Hidden Recipe Unlocked!",
+
+  "hint.hidden_recipes.enchanted_golden_apple_secret": "An old fragment of lore mentions surrounding something precious in gold.",
+  "hint.hidden_recipes.gilded_blackstone_secret": "Something you learned in the Nether hinted at gilding blackstone.",
+  "hint.hidden_recipes.name_tag_secret": "Understanding animals well enough - and not already carrying one - would teach you this.",
+  "hint.hidden_recipes.saddle_secret": "Either a way with beasts, or a well-travelled life, would teach you this.",
+  "hint.hidden_recipes.totem_of_undying_secret": "Having faced the dragon and lived, and holding a fragment of that fallen star, would teach you this.",
+  "hint.hidden_recipes.smelted_leather_secret": "Enough time fighting the undead would teach you what a furnace can render down."
+}

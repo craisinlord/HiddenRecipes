@@ -1,0 +1,110 @@
+plugins {
+    // fabric-loom-remap (vs vanilla fabric-loom on fabric-26.1) — the standard plugin
+    // refuses to use Mojang mappings in a non-obfuscated environment, which this
+    // multi-loader workspace is. -remap relaxes that check.
+    id 'net.fabricmc.fabric-loom-remap' version '1.15.5'
+}
+
+base {
+    archivesName = "${mod_id}-fabric-1.21.1"
+}
+
+// Handle duplicates from common module
+tasks.withType(AbstractCopyTask).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(21) }
+    withSourcesJar()
+}
+
+// Add common source sets directly
+sourceSets {
+    main {
+        java {
+            srcDirs project(':common-1.21.1').sourceSets.main.java.srcDirs
+            srcDir project(':common-1.21.1').file('src/jei/java')
+        }
+        resources {
+            srcDir project(':common-1.21.1').sourceSets.main.resources.srcDirs
+        }
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:1.21.1"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version_1_21_1}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version_1_21_1}"
+    modCompileOnly "mezz.jei:jei-1.21.1-common-api:${jei_version_1_21_1}"
+    modCompileOnly "mezz.jei:jei-1.21.1-fabric-api:${jei_version_1_21_1}"
+
+    // See src/test/java's package-info for why tests live here rather than in common-1.21.1.
+    testImplementation platform('org.junit:junit-bom:5.10.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+loom {
+    mixin.defaultRefmapName = "${mod_id}.mixins.refmap.json"
+}
+
+tasks.named('processResources', ProcessResources).configure {
+    var replaceProperties = [
+        version        : project.version,
+        mod_id         : mod_id,
+        mod_name       : mod_name,
+        mod_description: mod_description,
+        mod_license    : mod_license
+    ]
+    inputs.properties replaceProperties
+
+    filesMatching('fabric.mod.json') {
+        expand replaceProperties
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = rootProject.group
+            artifactId = project.base.archivesName.get()
+            version = project.version
+
+            // Fabric Loom remaps the jar to obfuscated Minecraft names at runtime.
+            // remapJar is the distributable artifact; remapSourcesJar has the readable sources.
+            artifact(project.tasks.named('remapJar'))
+            artifact(project.tasks.named('remapSourcesJar')) {
+                classifier = 'sources'
+            }
+
+            pom {
+                name = "${mod_name} (Fabric 1.21.1)"
+                description = mod_description
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = 'LocalMaven'
+            // file(...).toURI() (not manual "file://" string concat) so this resolves
+            // correctly on Windows too, where absolute paths contain backslashes.
+            url = findProperty('mavenRepoPath')
+                ? file(findProperty('mavenRepoPath')).toURI()
+                : rootProject.layout.buildDirectory.dir('maven-repo').get().asFile.toURI()
+        }
+        maven {
+            name = 'Forgejo'
+            url = uri('https://maven.tysontheember.dev')
+            credentials {
+                username = findProperty('forgejoActor') ?: System.getenv('FORGEJO_ACTOR')
+                password = findProperty('forgejoToken') ?: System.getenv('FORGEJO_TOKEN')
+            }
+        }
+    }
+}
