@@ -39,6 +39,7 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version_1_21_1}"
     modCompileOnly "mezz.jei:jei-1.21.1-common-api:${jei_version_1_21_1}"
     modCompileOnly "mezz.jei:jei-1.21.1-fabric-api:${jei_version_1_21_1}"
+    modLocalRuntime "mezz.jei:jei-1.21.1-fabric:${jei_version_1_21_1}"
 
     // See src/test/java's package-info for why tests live here rather than in common-1.21.1.
     testImplementation platform('org.junit:junit-bom:5.10.2')

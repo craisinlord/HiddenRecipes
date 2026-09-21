@@ -18,6 +18,9 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 
 import java.util.List;
 
@@ -75,9 +78,33 @@ public final class HiddenRecipeHintCategory implements IRecipeCategory<HiddenRec
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, HiddenRecipeEntry entry, IFocusGroup focuses) {
-        // No ingredient/output slots on purpose — the point is that they're unknown.
+        // Deliberately no INPUT slots — the point is that the ingredients stay unknown.
+        // But an OUTPUT slot for the crafted result IS needed: it's the standard JEI
+        // mechanism that associates this category with that item for the recipe-lookup
+        // key (R). Without it, JEI had no output to index this category under, so R on
+        // the crafted item found nothing here — the hint only ever surfaced indirectly,
+        // via the (now-removed) catalyst registration's Uses-key (U) association, which
+        // is exactly backwards from the intended "R on the result, not U on an
+        // ingredient" behavior. Revealing just the output item here tells the player
+        // nothing they don't already know (they were looking it up by name/icon), unlike
+        // an input slot, which would leak the real ingredients.
+        //
         // Progress-hint rendering (e.g. "2/3 requirements met") reads live player state,
         // so it belongs in #draw (called every frame) rather than here (built once).
+        resolveOutput(entry.recipe()).ifPresent(stack -> builder.addOutputSlot(getWidth() / 2 - 8, getHeight() - 24).addItemStack(stack));
+    }
+
+    private static java.util.Optional<ItemStack> resolveOutput(ResourceLocation recipeId) {
+        if (Minecraft.getInstance().level == null) {
+            return java.util.Optional.empty();
+        }
+        return Minecraft.getInstance().level.getRecipeManager().byKey(recipeId).map(HiddenRecipeHintCategory::assemble);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static ItemStack assemble(RecipeHolder<?> holder) {
+        Recipe recipe = holder.value();
+        return recipe.getResultItem(Minecraft.getInstance().level.registryAccess());
     }
 
     @Override

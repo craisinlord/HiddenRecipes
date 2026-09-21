@@ -1,5 +1,6 @@
 package com.craisinlord.hiddenrecipes.condition.impl;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.craisinlord.hiddenrecipes.condition.HiddenRecipeCondition;
@@ -15,8 +16,9 @@ import java.util.Set;
 
 public record OrCondition(List<HiddenRecipeCondition> values) implements HiddenRecipeCondition {
 
+    /** See {@code AndCondition.CODEC}'s javadoc — same circular-static-init hazard, same fix. */
     public static final MapCodec<OrCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-        HiddenRecipeConditions.CODEC.listOf().fieldOf("values").forGetter(OrCondition::values)
+        Codec.lazyInitialized(() -> HiddenRecipeConditions.CODEC).listOf().fieldOf("values").forGetter(OrCondition::values)
     ).apply(instance, OrCondition::new));
 
     @Override

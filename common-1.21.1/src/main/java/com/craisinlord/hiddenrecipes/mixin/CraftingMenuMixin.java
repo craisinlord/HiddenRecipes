@@ -11,6 +11,7 @@ import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
@@ -48,7 +49,7 @@ public abstract class CraftingMenuMixin {
     private static Optional<RecipeHolder<CraftingRecipe>> hiddenrecipes$hideLockedRecipe(
         RecipeManager recipeManager,
         RecipeType<CraftingRecipe> type,
-        CraftingInput input,
+        RecipeInput input,
         Level level,
         RecipeHolder<CraftingRecipe> lastRecipe,
         // Trailing params: CraftingMenu#slotChangedCraftingGrid's own arguments, captured
@@ -61,7 +62,7 @@ public abstract class CraftingMenuMixin {
         ResultContainer resultSlots,
         RecipeHolder<CraftingRecipe> requestedRecipe
     ) {
-        Optional<RecipeHolder<CraftingRecipe>> found = recipeManager.getRecipeFor(type, input, level, lastRecipe);
+        Optional<RecipeHolder<CraftingRecipe>> found = recipeManager.getRecipeFor(type, (CraftingInput) input, level, lastRecipe);
         if (found.isPresent() && player instanceof ServerPlayer serverPlayer) {
             ResourceLocation recipeId = found.get().id();
             if (HiddenRecipeManager.INSTANCE.isLocked(recipeId, serverPlayer)) {

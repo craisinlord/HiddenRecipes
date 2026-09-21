@@ -1,5 +1,6 @@
 package com.craisinlord.hiddenrecipes.condition.impl;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.craisinlord.hiddenrecipes.condition.HiddenRecipeCondition;
@@ -15,8 +16,20 @@ import java.util.Set;
 
 public record AndCondition(List<HiddenRecipeCondition> values) implements HiddenRecipeCondition {
 
+    /**
+     * {@code Codec.lazyInitialized} defers the {@code HiddenRecipeConditions.CODEC} field
+     * read until this codec is first actually used (i.e. until a hidden recipe is parsed),
+     * not until this class is loaded. Without it, whichever of {@code HiddenRecipeConditions}
+     * / {@code AndCondition} the JVM happens to touch first wins the class-init race and the
+     * other reads the not-yet-assigned (still {@code null}) field of the one that's mid-init
+     * — since both classes' static initializers reference each other. That silently
+     * registered {@code "and"} (and {@code "or"}/{@code "not"}, same issue) with a null
+     * {@code MapCodec}, which blew up as a bare NPE ({@code MapDecoder.decode(...) because
+     * "elementDecoder" is null}) the first time an {@code and}-typed condition was parsed,
+     * instead of a normal codec error.
+     */
     public static final MapCodec<AndCondition> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-        HiddenRecipeConditions.CODEC.listOf().fieldOf("values").forGetter(AndCondition::values)
+        Codec.lazyInitialized(() -> HiddenRecipeConditions.CODEC).listOf().fieldOf("values").forGetter(AndCondition::values)
     ).apply(instance, AndCondition::new));
 
     @Override

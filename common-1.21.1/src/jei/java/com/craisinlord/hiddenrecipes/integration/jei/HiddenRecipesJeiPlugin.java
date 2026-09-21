@@ -9,13 +9,11 @@ import com.craisinlord.hiddenrecipes.network.ClientHiddenRecipeState;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.recipe.RecipeType;
-import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
@@ -185,13 +183,12 @@ public final class HiddenRecipesJeiPlugin implements IModPlugin {
         registration.addRecipes(HiddenRecipeHintCategory.TYPE, resolveVisibleEntries());
     }
 
-    @Override
-    public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
-        for (HiddenRecipeEntry entry : resolveVisibleEntries()) {
-            resolveOutput(entry.recipe()).ifPresent(output ->
-                registration.addRecipeCatalyst(output, HiddenRecipeHintCategory.TYPE));
-        }
-    }
+    // No registerRecipeCatalysts override: a catalyst is the tool/station that unlocks a
+    // category (furnace -> smelting), not that category's own output — registering the
+    // crafted result as its own catalyst was a misuse of that API that (among other things)
+    // made JEI associate the hint with the recipe-lookup key (U, "Uses") instead of R,
+    // exactly backwards from the intended behavior. R-key lookup on the crafted item now
+    // works correctly via the output slot HiddenRecipeHintCategory#setRecipe adds instead.
 
     /**
      * A shared placeholder condition for entries reconstructed from
@@ -220,15 +217,6 @@ public final class HiddenRecipesJeiPlugin implements IModPlugin {
             .toList();
     }
 
-    /** Recipe *existence* (unlike hidden_recipes conditions/hints) is synced to every client, so this works remotely. */
-    private static Optional<ItemStack> resolveOutput(ResourceLocation recipeId) {
-        if (Minecraft.getInstance().level == null) {
-            return Optional.empty();
-        }
-        RecipeManager recipeManager = Minecraft.getInstance().level.getRecipeManager();
-        return recipeManager.byKey(recipeId).map(HiddenRecipesJeiPlugin::assemble);
-    }
-
     /** Type-agnostic recipe lookup — unlike the old crafting-only version, works for any recipe type. */
     private static Optional<RecipeHolder<?>> resolveHolder(ResourceLocation recipeId) {
         if (Minecraft.getInstance().level == null) {
@@ -236,11 +224,5 @@ public final class HiddenRecipesJeiPlugin implements IModPlugin {
         }
         RecipeManager recipeManager = Minecraft.getInstance().level.getRecipeManager();
         return recipeManager.byKey(recipeId);
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private static ItemStack assemble(RecipeHolder<?> holder) {
-        Recipe recipe = holder.value();
-        return recipe.getResultItem(Minecraft.getInstance().level.registryAccess());
     }
 }

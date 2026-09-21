@@ -23,8 +23,7 @@ behavior work normally.
 
 ## For modpack developers
 
-Nothing is required beyond the mod for the bundled examples. To add your own hidden recipe,
-create two normal datapack files under your namespace:
+To add your own hidden recipe, create two normal datapack files under your namespace:
 
 1. The real recipe under `data/<namespace>/recipe/`.
 2. A matching hidden-recipe entry under `data/<namespace>/hidden_recipes/`.
@@ -142,9 +141,10 @@ recipe definitions and each player's unlocked ids to the client. JEI hints there
 dedicated servers too. Live requirement progress is available only in singleplayer or an
 integrated server because the condition tree remains server-side.
 
-## Bundled examples
+## Example datapack
 
-The project includes examples for:
+The repo includes a complete, working example datapack under
+[`examples/hidden_recipes_examples/`](examples/hidden_recipes_examples), covering:
 
 - `enchanted_golden_apple_secret`
 - `gilded_blackstone_secret`
@@ -153,8 +153,10 @@ The project includes examples for:
 - `totem_of_undying_secret`
 - `smelted_leather_secret`
 
-They are under `common-1.21.1/src/main/resources/data/hidden_recipes/` and are intended as
-complete, working references for datapack authors.
+It is **not** bundled into the built mod jar — it lives outside `src/main/resources` on
+purpose, so installs don't ship example content players never asked for. To try it, copy
+`examples/hidden_recipes_examples/` into a world's `datapacks/` folder and run `/reload` (or
+restart the world). See that folder's own README for what each example demonstrates.
 
 ## Known limitations
 
