@@ -153,11 +153,6 @@ The repo includes a complete, working example datapack under
 - `totem_of_undying_secret`
 - `smelted_leather_secret`
 
-It is **not** bundled into the built mod jar — it lives outside `src/main/resources` on
-purpose, so installs don't ship example content players never asked for. To try it, copy
-`examples/hidden_recipes_examples/` into a world's `datapacks/` folder and run `/reload` (or
-restart the world). See that folder's own README for what each example demonstrates.
-
 ## Known limitations
 
 - Hard enforcement does not cover custom machines, campfires, smithing, or stonecutting.
