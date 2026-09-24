@@ -156,6 +156,5 @@ The repo includes a complete, working example datapack under
 ## Known limitations
 
 - Hard enforcement does not cover custom machines, campfires, smithing, or stonecutting.
-- Furnace automation without a player who has opened the furnace cannot be attributed to a player,
-  so those recipes are not blocked in that specific situation.
-- The JEI hint category uses a simple drawn `?` icon rather than a custom texture.
+- Furnace automation without a player who has opened the furnace (from a hopper) can't be attributed to a player,
+  so those recipes are not blocked 
